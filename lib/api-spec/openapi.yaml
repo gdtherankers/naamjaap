@@ -3,20 +3,33 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for Naam Jaap Sewa Platform
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: Auth
+    description: Browser and mobile authentication endpoints.
+  - name: Profile
+    description: User profile and onboarding
+  - name: Sankalp
+    description: Daily sankalp ritual
+  - name: Jaap
+    description: Naam jaap counting
+  - name: Dashboard
+    description: User dashboard summaries
+  - name: Leaderboard
+    description: Top devotees
+  - name: Admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +37,552 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      operationId: getCurrentAuthUser
+      summary: Get the currently authenticated user
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '200':
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserEnvelope'
+  /login:
+    get:
+      tags: [Auth]
+      operationId: beginBrowserLogin
+      summary: Start the browser OIDC login flow
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to OIDC.
+  /callback:
+    get:
+      tags: [Auth]
+      operationId: handleBrowserLoginCallback
+      summary: Complete the browser OIDC login flow
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: iss
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        '302':
+          description: Redirect.
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Clear the session and begin OIDC logout
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '302':
+          description: Redirect.
+  /mobile-auth/token-exchange:
+    post:
+      tags: [Auth]
+      operationId: exchangeMobileAuthorizationCode
+      summary: Exchange a mobile OIDC code for a session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileTokenExchangeRequest'
+      responses:
+        '200':
+          description: Session created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileTokenExchangeSuccess'
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Token did not contain usable claims.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Token exchange failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /mobile-auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutMobileSession
+      summary: Delete a mobile session token
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+      responses:
+        '200':
+          description: Logout processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutSuccess'
+
+  /profile:
+    get:
+      tags: [Profile]
+      operationId: getMyProfile
+      summary: Get the current user's devotee profile
+      responses:
+        '200':
+          description: Profile envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      tags: [Profile]
+      operationId: upsertMyProfile
+      summary: Create or update the current user's devotee profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertProfileBody'
+      responses:
+        '200':
+          description: Profile saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /sankalp/today:
+    get:
+      tags: [Sankalp]
+      operationId: getTodaySankalp
+      summary: Get today's sankalp status for the user
+      responses:
+        '200':
+          description: Today's sankalp envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SankalpEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      tags: [Sankalp]
+      operationId: acceptTodaySankalp
+      summary: Accept today's sankalp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptSankalpBody'
+      responses:
+        '200':
+          description: Sankalp accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SankalpEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /sankalp/history:
+    get:
+      tags: [Sankalp]
+      operationId: getSankalpHistory
+      summary: Recent sankalp history (last 30 days)
+      responses:
+        '200':
+          description: Sankalp history.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SankalpHistoryEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /jaap/count:
+    post:
+      tags: [Jaap]
+      operationId: addJaapCount
+      summary: Increment today's jaap count
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddJaapBody'
+      responses:
+        '200':
+          description: Updated jaap snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JaapSnapshotEnvelope'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Sankalp not accepted today.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: Rate limited / suspicious activity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /jaap/snapshot:
+    get:
+      tags: [Jaap]
+      operationId: getJaapSnapshot
+      summary: Get the current user's jaap snapshot
+      responses:
+        '200':
+          description: Snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JaapSnapshotEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /dashboard/summary:
+    get:
+      tags: [Dashboard]
+      operationId: getDashboardSummary
+      summary: Combined summary for the dashboard
+      responses:
+        '200':
+          description: Dashboard summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /dashboard/history:
+    get:
+      tags: [Dashboard]
+      operationId: getJaapHistory
+      summary: Jaap counts for the last N days
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+            default: 7
+      responses:
+        '200':
+          description: Daily jaap history.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JaapHistoryEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /leaderboard:
+    get:
+      tags: [Leaderboard]
+      operationId: getLeaderboard
+      summary: Top devotees
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [today, week, alltime]
+            default: today
+      responses:
+        '200':
+          description: Leaderboard.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardEnvelope'
+
+  /global/stats:
+    get:
+      tags: [Dashboard]
+      operationId: getGlobalStats
+      summary: Combined stats across all devotees
+      responses:
+        '200':
+          description: Global stats.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalStats'
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      operationId: adminListUsers
+      summary: Admin - list all devotees
+      responses:
+        '200':
+          description: Devotees.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersEnvelope'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /admin/users/{userId}/approve:
+    post:
+      tags: [Admin]
+      operationId: adminSetApproval
+      summary: Admin - approve or reject a devotee
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetApprovalBody'
+      responses:
+        '200':
+          description: Updated devotee.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserEnvelope'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /admin/payouts:
+    get:
+      tags: [Admin]
+      operationId: adminListPayouts
+      summary: Admin - list payout requests
+      responses:
+        '200':
+          description: Payouts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutsEnvelope'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /admin/payouts/{payoutId}:
+    post:
+      tags: [Admin]
+      operationId: adminUpdatePayout
+      summary: Admin - mark a payout as paid or rejected
+      parameters:
+        - name: payoutId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePayoutBody'
+      responses:
+        '200':
+          description: Updated payout.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutEnvelope'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /admin/stats:
+    get:
+      tags: [Admin]
+      operationId: adminStats
+      summary: Admin - dashboard stats
+      responses:
+        '200':
+          description: Admin stats.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStats'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /payouts:
+    get:
+      tags: [Profile]
+      operationId: listMyPayouts
+      summary: Current user's payout history
+      responses:
+        '200':
+          description: Payouts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutsEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      tags: [Profile]
+      operationId: requestPayout
+      summary: Request a payout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayoutRequest'
+      responses:
+        '200':
+          description: Payout requested.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutEnvelope'
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
 components:
+  parameters:
+    AuthorizationSessionHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Opaque session token — `Bearer <sid>`.
+      schema:
+        type: string
+    SessionCookie:
+      name: sid
+      in: cookie
+      required: false
+      description: Browser session cookie.
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +592,551 @@ components:
       required:
         - status
 
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, profileImageUrl]
+      properties:
+        id:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        profileImageUrl:
+          type: [string, 'null']
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: '#/components/schemas/AuthUser'
+            - type: 'null'
+    MobileTokenExchangeRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri, state]
+      properties:
+        code:
+          type: string
+          minLength: 1
+        code_verifier:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+          format: uri
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+    MobileTokenExchangeSuccess:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          const: true
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    DevoteeProfile:
+      type: object
+      required:
+        - id
+        - userId
+        - name
+        - gotra
+        - city
+        - state
+        - approved
+        - isAdmin
+        - upiId
+        - createdAt
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        gotra:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        approved:
+          type: boolean
+        isAdmin:
+          type: boolean
+        phone:
+          type: [string, 'null']
+        upiId:
+          type: [string, 'null']
+        gender:
+          type: [string, 'null']
+        email:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+    ProfileEnvelope:
+      type: object
+      required: [profile]
+      properties:
+        profile:
+          oneOf:
+            - $ref: '#/components/schemas/DevoteeProfile'
+            - type: 'null'
+    UpsertProfileBody:
+      type: object
+      required: [name, gotra, city, state]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        gotra:
+          type: string
+          minLength: 1
+          maxLength: 60
+        city:
+          type: string
+          minLength: 1
+          maxLength: 60
+        state:
+          type: string
+          minLength: 1
+          maxLength: 60
+        phone:
+          type: [string, 'null']
+        upiId:
+          type: [string, 'null']
+        gender:
+          type: [string, 'null']
+
+    Sankalp:
+      type: object
+      required: [id, userId, date, accepted, acceptedAt, text]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        date:
+          type: string
+        accepted:
+          type: boolean
+        acceptedAt:
+          type: [string, 'null']
+          format: date-time
+        text:
+          type: string
+    SankalpEnvelope:
+      type: object
+      required: [sankalp, alreadyAcceptedToday]
+      properties:
+        sankalp:
+          $ref: '#/components/schemas/Sankalp'
+        alreadyAcceptedToday:
+          type: boolean
+    SankalpHistoryItem:
+      type: object
+      required: [date, accepted]
+      properties:
+        date:
+          type: string
+        accepted:
+          type: boolean
+        acceptedAt:
+          type: [string, 'null']
+          format: date-time
+    SankalpHistoryEnvelope:
+      type: object
+      required: [history]
+      properties:
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/SankalpHistoryItem'
+    AcceptSankalpBody:
+      type: object
+      properties:
+        text:
+          type: [string, 'null']
+
+    PatronSankalpProgress:
+      type: object
+      required:
+        - id
+        - goalCount
+        - accumulated
+        - userAccumulated
+        - remaining
+        - yajamanaName
+        - purpose
+        - ratePerJaap
+      properties:
+        id:
+          type: string
+        goalCount:
+          type: integer
+        accumulated:
+          type: integer
+        userAccumulated:
+          type: integer
+        remaining:
+          type: integer
+        yajamanaName:
+          type: string
+        purpose:
+          type: string
+        ratePerJaap:
+          type: number
+    JaapSnapshot:
+      type: object
+      required:
+        - todayCount
+        - totalCount
+        - todayEarnings
+        - totalEarnings
+        - sankalpAccepted
+        - streakDays
+        - todayMalas
+        - totalMalas
+        - allSankalpsDone
+      properties:
+        todayCount:
+          type: integer
+        totalCount:
+          type: integer
+        todayEarnings:
+          type: number
+        totalEarnings:
+          type: number
+        sankalpAccepted:
+          type: boolean
+        streakDays:
+          type: integer
+        todayMalas:
+          type: integer
+        totalMalas:
+          type: integer
+        activePatronSankalpId:
+          type: string
+          nullable: true
+        currentSankalp:
+          oneOf:
+            - $ref: '#/components/schemas/PatronSankalpProgress'
+            - type: 'null'
+        activeMantraText:
+          type: string
+          nullable: true
+        allSankalpsDone:
+          type: boolean
+        pendingSankalpAcceptance:
+          type: object
+          nullable: true
+    JaapSnapshotEnvelope:
+      type: object
+      required: [snapshot]
+      properties:
+        snapshot:
+          $ref: '#/components/schemas/JaapSnapshot'
+    AddJaapBody:
+      type: object
+      required: [count, intervalMs]
+      properties:
+        count:
+          type: integer
+          minimum: 1
+          maximum: 200
+        intervalMs:
+          type: integer
+          minimum: 0
+        verified:
+          type: boolean
+
+    DashboardSummary:
+      type: object
+      required:
+        - snapshot
+        - profile
+        - milestones
+        - dailyTarget
+        - dailyTargetProgress
+      properties:
+        snapshot:
+          $ref: '#/components/schemas/JaapSnapshot'
+        profile:
+          oneOf:
+            - $ref: '#/components/schemas/DevoteeProfile'
+            - type: 'null'
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+        dailyTarget:
+          type: integer
+        dailyTargetProgress:
+          type: number
+    Milestone:
+      type: object
+      required: [count, reward, achieved]
+      properties:
+        count:
+          type: integer
+        reward:
+          type: number
+        achieved:
+          type: boolean
+        label:
+          type: string
+    JaapHistoryDay:
+      type: object
+      required: [date, count, earnings]
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+        earnings:
+          type: number
+    JaapHistoryEnvelope:
+      type: object
+      required: [days]
+      properties:
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/JaapHistoryDay'
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, name, gotra, city, count, isMe]
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: string
+        name:
+          type: string
+        gotra:
+          type: string
+        city:
+          type: string
+        count:
+          type: integer
+        isMe:
+          type: boolean
+        badges:
+          type: array
+          items:
+            type: string
+    LeaderboardEnvelope:
+      type: object
+      required: [scope, entries]
+      properties:
+        scope:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+
+    GlobalStats:
+      type: object
+      required: [totalUsers, totalJaapAllTime, totalJaapToday, totalEarnings]
+      properties:
+        totalUsers:
+          type: integer
+        totalJaapAllTime:
+          type: integer
+        totalJaapToday:
+          type: integer
+        totalEarnings:
+          type: number
+
+    AdminUser:
+      type: object
+      required:
+        - userId
+        - profileId
+        - name
+        - gotra
+        - city
+        - state
+        - email
+        - approved
+        - isAdmin
+        - totalJaap
+        - totalEarnings
+        - suspiciousFlags
+        - createdAt
+      properties:
+        userId:
+          type: string
+        profileId:
+          type: string
+        name:
+          type: string
+        gotra:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        email:
+          type: [string, 'null']
+        approved:
+          type: boolean
+        isAdmin:
+          type: boolean
+        totalJaap:
+          type: integer
+        totalEarnings:
+          type: number
+        suspiciousFlags:
+          type: integer
+        phone:
+          type: [string, 'null']
+        upiId:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+    AdminUsersEnvelope:
+      type: object
+      required: [users]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUser'
+    AdminUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: '#/components/schemas/AdminUser'
+    SetApprovalBody:
+      type: object
+      required: [approved]
+      properties:
+        approved:
+          type: boolean
+
+    Payout:
+      type: object
+      required: [id, userId, amount, status, requestedAt, devoteeName]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        devoteeName:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, paid, rejected]
+        upiId:
+          type: [string, 'null']
+        paymentMethod:
+          type: [string, 'null']
+        paymentNote:
+          type: [string, 'null']
+        requestedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: [string, 'null']
+          format: date-time
+    PayoutEnvelope:
+      type: object
+      required: [payout]
+      properties:
+        payout:
+          $ref: '#/components/schemas/Payout'
+    PayoutsEnvelope:
+      type: object
+      required: [payouts]
+      properties:
+        payouts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payout'
+    PayoutRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          minimum: 10
+        upiId:
+          type: string
+          minLength: 3
+    UpdatePayoutBody:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [paid, rejected]
+        paymentMethod:
+          type: string
+          enum: [upi, bank_transfer, cash]
+        paymentNote:
+          type: string
+
+    AdminStats:
+      type: object
+      required:
+        - totalUsers
+        - approvedUsers
+        - pendingApproval
+        - totalJaap
+        - totalPayoutPending
+        - totalPayoutPaid
+        - todayJaap
+        - todayExpense
+        - totalExpense
+        - activeBhaktsToday
+      properties:
+        totalUsers:
+          type: integer
+        approvedUsers:
+          type: integer
+        pendingApproval:
+          type: integer
+        totalJaap:
+          type: integer
+        totalPayoutPending:
+          type: number
+        totalPayoutPaid:
+          type: number
+        todayJaap:
+          type: integer
+        todayExpense:
+          type: number
+        totalExpense:
+          type: number
+        activeBhaktsToday:
+          type: integer

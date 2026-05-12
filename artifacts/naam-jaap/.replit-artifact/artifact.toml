@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Naam Jaap Sewa"
+version = "1.0.0"
+id = "artifacts/naam-jaap"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23978
+
+[services.development]
+run = "pnpm --filter @workspace/naam-jaap run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/naam-jaap", "run", "build" ]
+publicDir = "artifacts/naam-jaap/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23978"
+BASE_PATH = "/"
