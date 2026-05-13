@@ -624,6 +624,11 @@ export default function JaapPage() {
             animate={!isJaapBlocked && localCount > 0 && localCount % 108 === 0 ? { scale: [1, 1.08, 1] } : {}}
             transition={{ duration: 0.6, ease: "easeOut" }}
             onClick={handleJaap}
+            onKeyDown={(e) => {
+              if ((e.key === "Enter" || e.key === " ") && e.repeat) {
+                e.preventDefault();
+              }
+            }}
             disabled={isJaapBlocked}
             className={`relative rounded-full flex items-center justify-center outline-none select-none touch-none overflow-hidden transition-all
               ${isJaapBlocked

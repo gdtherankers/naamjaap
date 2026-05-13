@@ -240,6 +240,9 @@ export async function switchUserSankalp(opts: {
  * Private Priority: if user has an incomplete private sankalp, they are always
  * routed to that first before any public sankalp.
  *
+ * currentAccepted: if true, the new sankalp inherits the accepted state so that
+ * jaap counting is not blocked while the acceptance dialog is shown.
+ *
  * Returns null if all eligible sankalps are done.
  */
 async function findAndSwitchToNextSankalp({
@@ -247,11 +250,13 @@ async function findAndSwitchToNextSankalp({
   date,
   currentSankalpId,
   todaySankalpId,
+  currentAccepted,
 }: {
   userId: string;
   date: string;
   currentSankalpId: string;
   todaySankalpId?: string;
+  currentAccepted?: boolean;
 }): Promise<string | null> {
   // PRIVATE PRIORITY: check for any incomplete private sankalp first
   const incompletePrivate = await getIncompletePrivateSankalp(userId);
@@ -260,7 +265,7 @@ async function findAndSwitchToNextSankalp({
       userId,
       date,
       newSankalpId: incompletePrivate.id,
-      accepted: false,
+      accepted: currentAccepted ?? false,
       existingTodaySankalpId: todaySankalpId,
       oldSankalpId: currentSankalpId,
     });
@@ -300,7 +305,7 @@ async function findAndSwitchToNextSankalp({
       userId,
       date,
       newSankalpId: ps.id,
-      accepted: false,
+      accepted: currentAccepted ?? false,
       existingTodaySankalpId: todaySankalpId,
       oldSankalpId: currentSankalpId,
     });
@@ -324,6 +329,10 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
     .limit(1);
 
   const activeSankalpId = todaySankalp?.patronSankalpId ?? null;
+  // Preserve the existing accepted state so that auto-switching patron sankalps
+  // does not block jaap counting for users who already accepted today's sankalp.
+  const currentAccepted = todaySankalp?.accepted ?? false;
+
   if (!activeSankalpId) {
     // No today sankalp yet — check if user has an incomplete private sankalp assigned
     const incompletePrivate = await getIncompletePrivateSankalp(userId);
@@ -332,7 +341,7 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
         userId,
         date,
         newSankalpId: incompletePrivate.id,
-        accepted: false,
+        accepted: currentAccepted,
         existingTodaySankalpId: todaySankalp ? todaySankalp.id : undefined,
       });
       return incompletePrivate.id;
@@ -354,7 +363,7 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
           userId,
           date,
           newSankalpId: ps.id,
-          accepted: false,
+          accepted: currentAccepted,
           existingTodaySankalpId: todaySankalp ? todaySankalp.id : undefined,
         });
         return ps.id;
@@ -417,6 +426,7 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
         date,
         currentSankalpId: activeSankalpId,
         todaySankalpId: todaySankalp ? todaySankalp.id : undefined,
+        currentAccepted,
       });
     }
   }
@@ -427,6 +437,7 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
       date,
       currentSankalpId: activeSankalpId,
       todaySankalpId: todaySankalp ? todaySankalp.id : undefined,
+      currentAccepted,
     });
   }
 
@@ -449,6 +460,7 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
       date,
       currentSankalpId: activeSankalpId,
       todaySankalpId: todaySankalp ? todaySankalp.id : undefined,
+      currentAccepted,
     });
   }
 
@@ -460,7 +472,7 @@ export async function resolveActivePatronSankalpId(userId: string, date: string)
         userId,
         date,
         newSankalpId: incompletePrivate.id,
-        accepted: false,
+        accepted: currentAccepted,
         existingTodaySankalpId: todaySankalp ? todaySankalp.id : undefined,
         oldSankalpId: activeSankalpId,
       });
