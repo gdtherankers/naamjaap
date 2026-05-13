@@ -235,7 +235,7 @@ export default function JaapPage() {
           queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
         },
         onError: (err: any) => {
-          if (err?.response?.status === 403) {
+          if (err?.status === 403 || err?.response?.status === 403) {
             queryClient.invalidateQueries({ queryKey: getGetJaapSnapshotQueryKey() });
           }
         }

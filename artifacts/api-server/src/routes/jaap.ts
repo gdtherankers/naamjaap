@@ -255,18 +255,10 @@ router.post("/jaap/count", requireAuth, async (req, res) => {
 
   const isAdmin = profile.isAdmin;
 
-  let todaySankalp: typeof sankalpsTable.$inferSelect | null = null;
   if (!isAdmin) {
-    const [result] = await db
-      .select()
-      .from(sankalpsTable)
-      .where(and(eq(sankalpsTable.userId, userId), eq(sankalpsTable.date, date)))
-      .limit(1);
-    todaySankalp = result ?? null;
-    if (!todaySankalp?.accepted) {
-      res.status(403).json({ error: "Daily sankalp not accepted" });
-      return;
-    }
+    // Ensure a today-sankalp row exists (created by resolveActivePatronSankalpId below if missing).
+    // We no longer gate on `accepted` here — the patron sankalp assignment IS the effective
+    // acceptance, and blocking on `accepted: false` caused silent 403 loops in production.
   }
 
   // Resolve patron sankalp FIRST (before earnings calc) so we can use its rate
