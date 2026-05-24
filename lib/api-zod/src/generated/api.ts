@@ -248,6 +248,8 @@ export const AddJaapCountResponse = zod.object({
     activeMantraText: zod.string().nullish(),
     allSankalpsDone: zod.boolean(),
     pendingSankalpAcceptance: zod.object({}).passthrough().nullish(),
+    nijJaapRequired: zod.boolean().nullish(),
+    nijJaapTodayCount: zod.number().nullish(),
   }),
 });
 
@@ -283,7 +285,65 @@ export const GetJaapSnapshotResponse = zod.object({
     activeMantraText: zod.string().nullish(),
     allSankalpsDone: zod.boolean(),
     pendingSankalpAcceptance: zod.object({}).passthrough().nullish(),
+    nijJaapRequired: zod.boolean().nullish(),
+    nijJaapTodayCount: zod.number().nullish(),
   }),
+});
+
+/**
+ * @summary Get personal jaap snapshot for today
+ */
+export const GetNijJaapSnapshotResponse = zod.object({
+  snapshot: zod.object({
+    todayCount: zod.number(),
+    totalCount: zod.number(),
+    sankalpShown: zod.boolean(),
+    samarpanDone: zod.boolean(),
+    morningDone: zod.boolean(),
+    bonusUnlocked: zod.boolean(),
+    target: zod.number(),
+    isAdmin: zod.boolean(),
+  }),
+});
+
+/**
+ * @summary Add personal jaap count
+ */
+export const addNijJaapCountBodyCountMax = 200;
+
+export const addNijJaapCountBodyIntervalMsMin = 0;
+
+export const AddNijJaapCountBody = zod.object({
+  count: zod.number().min(1).max(addNijJaapCountBodyCountMax),
+  intervalMs: zod.number().min(addNijJaapCountBodyIntervalMsMin),
+  verified: zod.boolean().optional(),
+});
+
+export const AddNijJaapCountResponse = zod.object({
+  snapshot: zod.object({
+    todayCount: zod.number(),
+    totalCount: zod.number(),
+    sankalpShown: zod.boolean(),
+    samarpanDone: zod.boolean(),
+    morningDone: zod.boolean(),
+    bonusUnlocked: zod.boolean(),
+    target: zod.number(),
+    isAdmin: zod.boolean(),
+  }),
+});
+
+/**
+ * @summary Accept personal sankalp
+ */
+export const AcceptNijJaapSankalpResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Complete personal samarpan after 324 naam jaap
+ */
+export const CompleteNijJaapSamarpanResponse = zod.object({
+  success: zod.boolean(),
 });
 
 /**
@@ -318,6 +378,8 @@ export const GetDashboardSummaryResponse = zod.object({
     activeMantraText: zod.string().nullish(),
     allSankalpsDone: zod.boolean(),
     pendingSankalpAcceptance: zod.object({}).passthrough().nullish(),
+    nijJaapRequired: zod.boolean().nullish(),
+    nijJaapTodayCount: zod.number().nullish(),
   }),
   profile: zod.union([
     zod.object({
@@ -347,6 +409,8 @@ export const GetDashboardSummaryResponse = zod.object({
   ),
   dailyTarget: zod.number(),
   dailyTargetProgress: zod.number(),
+  nijJaapTodayCount: zod.number().optional(),
+  nijJaapTotalCount: zod.number().optional(),
 });
 
 /**

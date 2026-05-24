@@ -37,6 +37,7 @@ import type {
   LogoutSuccess,
   MobileTokenExchangeRequest,
   MobileTokenExchangeSuccess,
+  NijJaapSnapshotEnvelope,
   PayoutEnvelope,
   PayoutRequest,
   PayoutsEnvelope,
@@ -44,6 +45,7 @@ import type {
   SankalpEnvelope,
   SankalpHistoryEnvelope,
   SetApprovalBody,
+  SuccessResponse,
   UpdatePayoutBody,
   UpsertProfileBody,
 } from "./api.schemas";
@@ -1213,6 +1215,329 @@ export function useGetJaapSnapshot<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get personal jaap snapshot for today
+ */
+export const getGetNijJaapSnapshotUrl = () => {
+  return `/api/nij-jaap/snapshot`;
+};
+
+export const getNijJaapSnapshot = async (
+  options?: RequestInit,
+): Promise<NijJaapSnapshotEnvelope> => {
+  return customFetch<NijJaapSnapshotEnvelope>(getGetNijJaapSnapshotUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetNijJaapSnapshotQueryKey = () => {
+  return [`/api/nij-jaap/snapshot`] as const;
+};
+
+export const getGetNijJaapSnapshotQueryOptions = <
+  TData = Awaited<ReturnType<typeof getNijJaapSnapshot>>,
+  TError = ErrorType<ErrorEnvelope>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getNijJaapSnapshot>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetNijJaapSnapshotQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getNijJaapSnapshot>>
+  > = ({ signal }) => getNijJaapSnapshot({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getNijJaapSnapshot>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetNijJaapSnapshotQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getNijJaapSnapshot>>
+>;
+export type GetNijJaapSnapshotQueryError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Get personal jaap snapshot for today
+ */
+
+export function useGetNijJaapSnapshot<
+  TData = Awaited<ReturnType<typeof getNijJaapSnapshot>>,
+  TError = ErrorType<ErrorEnvelope>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getNijJaapSnapshot>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetNijJaapSnapshotQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add personal jaap count
+ */
+export const getAddNijJaapCountUrl = () => {
+  return `/api/nij-jaap/count`;
+};
+
+export const addNijJaapCount = async (
+  addJaapBody: AddJaapBody,
+  options?: RequestInit,
+): Promise<NijJaapSnapshotEnvelope> => {
+  return customFetch<NijJaapSnapshotEnvelope>(getAddNijJaapCountUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addJaapBody),
+  });
+};
+
+export const getAddNijJaapCountMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addNijJaapCount>>,
+    TError,
+    { data: BodyType<AddJaapBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addNijJaapCount>>,
+  TError,
+  { data: BodyType<AddJaapBody> },
+  TContext
+> => {
+  const mutationKey = ["addNijJaapCount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addNijJaapCount>>,
+    { data: BodyType<AddJaapBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return addNijJaapCount(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddNijJaapCountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addNijJaapCount>>
+>;
+export type AddNijJaapCountMutationBody = BodyType<AddJaapBody>;
+export type AddNijJaapCountMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Add personal jaap count
+ */
+export const useAddNijJaapCount = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addNijJaapCount>>,
+    TError,
+    { data: BodyType<AddJaapBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addNijJaapCount>>,
+  TError,
+  { data: BodyType<AddJaapBody> },
+  TContext
+> => {
+  return useMutation(getAddNijJaapCountMutationOptions(options));
+};
+
+/**
+ * @summary Accept personal sankalp
+ */
+export const getAcceptNijJaapSankalpUrl = () => {
+  return `/api/nij-jaap/accept-sankalp`;
+};
+
+export const acceptNijJaapSankalp = async (
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getAcceptNijJaapSankalpUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getAcceptNijJaapSankalpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof acceptNijJaapSankalp>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof acceptNijJaapSankalp>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["acceptNijJaapSankalp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof acceptNijJaapSankalp>>,
+    void
+  > = () => {
+    return acceptNijJaapSankalp(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AcceptNijJaapSankalpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof acceptNijJaapSankalp>>
+>;
+
+export type AcceptNijJaapSankalpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Accept personal sankalp
+ */
+export const useAcceptNijJaapSankalp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof acceptNijJaapSankalp>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof acceptNijJaapSankalp>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getAcceptNijJaapSankalpMutationOptions(options));
+};
+
+/**
+ * @summary Complete personal samarpan after 324 naam jaap
+ */
+export const getCompleteNijJaapSamarpanUrl = () => {
+  return `/api/nij-jaap/complete-samarpan`;
+};
+
+export const completeNijJaapSamarpan = async (
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getCompleteNijJaapSamarpanUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCompleteNijJaapSamarpanMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof completeNijJaapSamarpan>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof completeNijJaapSamarpan>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["completeNijJaapSamarpan"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof completeNijJaapSamarpan>>,
+    void
+  > = () => {
+    return completeNijJaapSamarpan(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CompleteNijJaapSamarpanMutationResult = NonNullable<
+  Awaited<ReturnType<typeof completeNijJaapSamarpan>>
+>;
+
+export type CompleteNijJaapSamarpanMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Complete personal samarpan after 324 naam jaap
+ */
+export const useCompleteNijJaapSamarpan = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof completeNijJaapSamarpan>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof completeNijJaapSamarpan>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getCompleteNijJaapSamarpanMutationOptions(options));
+};
 
 /**
  * @summary Combined summary for the dashboard

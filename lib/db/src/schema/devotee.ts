@@ -110,3 +110,32 @@ export const payoutsTable = pgTable(
 );
 
 export type Payout = typeof payoutsTable.$inferSelect;
+
+export const nijJaapDailyTable = pgTable(
+  "nij_jaap_daily",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").notNull(),
+    date: date("date").notNull(),
+    count: integer("count").notNull().default(0),
+    sankalpShown: boolean("sankalp_shown").notNull().default(false),
+    samarpanDone: boolean("samarpan_done").notNull().default(false),
+    timestamps: jsonb("timestamps").$type<number[]>().notNull().default(sql`'[]'::jsonb`),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("uniq_user_date_nij_jaap").on(table.userId, table.date),
+    index("idx_nij_jaap_user").on(table.userId),
+    index("idx_nij_jaap_date").on(table.date),
+  ],
+);
+
+export type NijJaapDaily = typeof nijJaapDailyTable.$inferSelect;
+
+export const nijJaapTotalsTable = pgTable("nij_jaap_totals", {
+  userId: varchar("user_id").primaryKey(),
+  totalCount: integer("total_count").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export type NijJaapTotals = typeof nijJaapTotalsTable.$inferSelect;

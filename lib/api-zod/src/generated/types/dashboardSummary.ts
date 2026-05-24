@@ -15,4 +15,6 @@ export interface DashboardSummary {
   milestones: Milestone[];
   dailyTarget: number;
   dailyTargetProgress: number;
+  nijJaapTodayCount?: number;
+  nijJaapTotalCount?: number;
 }

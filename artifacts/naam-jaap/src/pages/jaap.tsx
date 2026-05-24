@@ -364,6 +364,42 @@ export default function JaapPage() {
 
   if (isLoading) return null;
 
+  const nijJaapRequired = !!(snap as any)?.nijJaapRequired;
+
+  if (nijJaapRequired) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] gap-6">
+        <div className="text-center max-w-sm">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-2xl font-serif font-bold text-primary mb-3">पहले निज जाप करें</h2>
+          <p className="text-foreground mb-2">
+            यजमान सेवा शुरू करने से पहले आपको आज का निज नाम जप पूरा करना होगा।
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            श्री खाटू श्याम जी के लिए 324 नाम जप (3 माला) पूरे करें, फिर यजमान जाप का द्वार खुलेगा।
+          </p>
+          <div className="flex flex-col gap-3 items-center">
+            <div className="w-full bg-muted rounded-full h-3">
+              <div
+                className="h-3 rounded-full bg-purple-500 transition-all duration-500"
+                style={{ width: `${Math.min(100, (((snap as any)?.nijJaapTodayCount ?? 0) / 324) * 100)}%` }}
+              />
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {(snap as any)?.nijJaapTodayCount ?? 0} / 324 निज नाम जप
+            </span>
+          </div>
+          <button
+            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors"
+            onClick={() => setLocation("/nij-jaap")}
+          >
+            <span>निज जाप पेज पर जाएं 🙏</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center w-full min-h-[calc(100vh-8rem)]">
 

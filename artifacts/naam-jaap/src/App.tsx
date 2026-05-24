@@ -27,6 +27,7 @@ import ForgotPasswordPage from "@/pages/forgot-password";
 import ResetPasswordPage from "@/pages/reset-password";
 import NiyamPage from "@/pages/niyam";
 import ContactPage from "@/pages/contact";
+import NijJaapPage from "@/pages/nij-jaap";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +69,18 @@ function Router() {
         <RequireAuth>
           <RequireProfileAndApproval>
             <SankalpPage />
+          </RequireProfileAndApproval>
+        </RequireAuth>
+      </Route>
+
+      <Route path="/nij-jaap">
+        <RequireAuth>
+          <RequireProfileAndApproval>
+            <RequireSankalp>
+              <Layout>
+                <NijJaapPage />
+              </Layout>
+            </RequireSankalp>
           </RequireProfileAndApproval>
         </RequireAuth>
       </Route>

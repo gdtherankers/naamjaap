@@ -22,4 +22,6 @@ export interface JaapSnapshot {
   activeMantraText?: string | null;
   allSankalpsDone: boolean;
   pendingSankalpAcceptance?: JaapSnapshotPendingSankalpAcceptance;
+  nijJaapRequired?: boolean | null;
+  nijJaapTodayCount?: number | null;
 }

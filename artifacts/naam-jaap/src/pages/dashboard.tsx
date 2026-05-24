@@ -630,6 +630,33 @@ function BhaktDashboard() {
         <p className="text-foreground mt-1">{t("dashboard.subtitle")}</p>
       </div>
 
+      {/* Nij Jaap Stats */}
+      {((summary as any)?.nijJaapTodayCount != null || (summary as any)?.nijJaapTotalCount != null) && (
+        <Card className="border-purple-300/40 bg-purple-50/40 dark:bg-purple-950/20">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2 mb-3">
+              🙏 निज नाम जप (व्यक्तिगत)
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-3 bg-background rounded-xl">
+                <p className="text-[10px] uppercase tracking-wide text-foreground font-bold mb-1">आज</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {((summary as any)?.nijJaapTodayCount ?? 0).toLocaleString()}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">/ 324 लक्ष्य</p>
+              </div>
+              <div className="text-center p-3 bg-background rounded-xl">
+                <p className="text-[10px] uppercase tracking-wide text-foreground font-bold mb-1">कुल</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {((summary as any)?.nijJaapTotalCount ?? 0).toLocaleString()}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">अभी तक</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="pt-6">
           <div className="flex justify-between items-end mb-2">

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useGetMyProfile, useAdminStats } from "@workspace/api-client-react";
-import { Flame, LayoutDashboard, Trophy, Wallet, Calendar, User, Shield, LogOut, Menu, Target, Globe, Banknote, BookOpen, CheckCircle2, MessageCircle } from "lucide-react";
+import { Flame, LayoutDashboard, Trophy, Wallet, Calendar, User, Shield, LogOut, Menu, Target, Globe, Banknote, BookOpen, CheckCircle2, MessageCircle, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -90,7 +90,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const pendingCount = adminStats?.pendingApproval ?? 0;
 
   const navItems: NavItem[] = [
-    ...(!isAdmin ? [{ label: t("nav.jaap"), path: "/jaap", icon: <Flame className="w-4 h-4" /> }] : []),
+    ...(!isAdmin ? [
+      { label: "निज जाप", path: "/nij-jaap", icon: <Heart className="w-4 h-4" /> },
+      { label: t("nav.jaap"), path: "/jaap", icon: <Flame className="w-4 h-4" /> },
+    ] : [
+      { label: "निज जाप", path: "/nij-jaap", icon: <Heart className="w-4 h-4" /> },
+    ]),
     { label: t("nav.dashboard"), path: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
     { label: t("nav.sankalp-board"), path: "/sankalp-board", icon: <Target className="w-4 h-4" /> },
     { label: t("nav.leaderboard"), path: "/leaderboard", icon: <Trophy className="w-4 h-4" /> },

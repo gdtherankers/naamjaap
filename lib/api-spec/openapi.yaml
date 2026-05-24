@@ -18,6 +18,8 @@ tags:
     description: Daily sankalp ritual
   - name: Jaap
     description: Naam jaap counting
+  - name: NijJaap
+    description: Personal (nij) naam jaap - daily 324 for self
   - name: Dashboard
     description: User dashboard summaries
   - name: Leaderboard
@@ -314,6 +316,82 @@ paths:
                 $ref: '#/components/schemas/JaapSnapshotEnvelope'
         '401':
           description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /nij-jaap/snapshot:
+    get:
+      tags: [NijJaap]
+      operationId: getNijJaapSnapshot
+      summary: Get personal jaap snapshot for today
+      responses:
+        '200':
+          description: Personal jaap snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NijJaapSnapshotEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /nij-jaap/count:
+    post:
+      tags: [NijJaap]
+      operationId: addNijJaapCount
+      summary: Add personal jaap count
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddJaapBody'
+      responses:
+        '200':
+          description: Updated personal jaap snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NijJaapSnapshotEnvelope'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /nij-jaap/accept-sankalp:
+    post:
+      tags: [NijJaap]
+      operationId: acceptNijJaapSankalp
+      summary: Accept personal sankalp
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /nij-jaap/complete-samarpan:
+    post:
+      tags: [NijJaap]
+      operationId: completeNijJaapSamarpan
+      summary: Complete personal samarpan after 324 naam jaap
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Target not reached.
           content:
             application/json:
               schema:
@@ -809,6 +887,47 @@ components:
           type: string
         ratePerJaap:
           type: number
+    NijJaapSnapshot:
+      type: object
+      required:
+        - todayCount
+        - totalCount
+        - sankalpShown
+        - samarpanDone
+        - morningDone
+        - bonusUnlocked
+        - target
+        - isAdmin
+      properties:
+        todayCount:
+          type: integer
+        totalCount:
+          type: integer
+        sankalpShown:
+          type: boolean
+        samarpanDone:
+          type: boolean
+        morningDone:
+          type: boolean
+        bonusUnlocked:
+          type: boolean
+        target:
+          type: integer
+        isAdmin:
+          type: boolean
+    NijJaapSnapshotEnvelope:
+      type: object
+      required: [snapshot]
+      properties:
+        snapshot:
+          $ref: '#/components/schemas/NijJaapSnapshot'
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
     JaapSnapshot:
       type: object
       required:
@@ -853,6 +972,12 @@ components:
         pendingSankalpAcceptance:
           type: object
           nullable: true
+        nijJaapRequired:
+          type: boolean
+          nullable: true
+        nijJaapTodayCount:
+          type: integer
+          nullable: true
     JaapSnapshotEnvelope:
       type: object
       required: [snapshot]
@@ -896,6 +1021,10 @@ components:
           type: integer
         dailyTargetProgress:
           type: number
+        nijJaapTodayCount:
+          type: integer
+        nijJaapTotalCount:
+          type: integer
     Milestone:
       type: object
       required: [count, reward, achieved]

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, jaapDailyTable, sankalpsTable, userTotalsTable, profilesTable, mantrasTable, patronSankalpsTable, yajamanaTable, sankalpContributionsTable } from "@workspace/db";
+import { db, jaapDailyTable, sankalpsTable, userTotalsTable, profilesTable, mantrasTable, patronSankalpsTable, yajamanaTable, sankalpContributionsTable, nijJaapDailyTable } from "@workspace/db";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { AddJaapCountBody } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -191,6 +191,15 @@ router.get("/jaap/snapshot", requireAuth, async (req, res) => {
     }
   }
 
+  const [nijDailySnap] = await db
+    .select()
+    .from(nijJaapDailyTable)
+    .where(and(eq(nijJaapDailyTable.userId, userId), eq(nijJaapDailyTable.date, date)))
+    .limit(1);
+
+  const nijJaapRequired = !isAdmin && !(nijDailySnap?.samarpanDone ?? false);
+  const nijJaapTodayCount = nijDailySnap?.count ?? 0;
+
   res.json({
     snapshot: {
       ...buildSnapshot({
@@ -206,6 +215,8 @@ router.get("/jaap/snapshot", requireAuth, async (req, res) => {
       currentSankalp,
       pendingSankalpAcceptance,
       allSankalpsDone,
+      nijJaapRequired,
+      nijJaapTodayCount,
     },
   });
 });
@@ -256,9 +267,15 @@ router.post("/jaap/count", requireAuth, async (req, res) => {
   const isAdmin = profile.isAdmin;
 
   if (!isAdmin) {
-    // Ensure a today-sankalp row exists (created by resolveActivePatronSankalpId below if missing).
-    // We no longer gate on `accepted` here — the patron sankalp assignment IS the effective
-    // acceptance, and blocking on `accepted: false` caused silent 403 loops in production.
+    const [nijDaily] = await db
+      .select()
+      .from(nijJaapDailyTable)
+      .where(and(eq(nijJaapDailyTable.userId, userId), eq(nijJaapDailyTable.date, date)))
+      .limit(1);
+    if (!nijDaily?.samarpanDone) {
+      res.status(403).json({ error: "nij_jaap_required" });
+      return;
+    }
   }
 
   // Resolve patron sankalp FIRST (before earnings calc) so we can use its rate

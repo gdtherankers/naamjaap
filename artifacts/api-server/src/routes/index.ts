@@ -12,6 +12,7 @@ import mantrasRouter from "./mantras";
 import yajamanaRouter from "./yajamanas";
 import patronSankalpsRouter from "./patron-sankalps";
 import settingsRouter from "./settings";
+import nijJaapRouter from "./nij-jaap";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(mantrasRouter);
 router.use(yajamanaRouter);
 router.use(patronSankalpsRouter);
 router.use(settingsRouter);
+router.use(nijJaapRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, jaapDailyTable, sankalpsTable } from "@workspace/db";
+import { db, jaapDailyTable, sankalpsTable, nijJaapDailyTable, nijJaapTotalsTable } from "@workspace/db";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { GetJaapHistoryQueryParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -37,6 +37,17 @@ router.get("/dashboard/summary", requireAuth, async (req, res) => {
     streakDays: totals.streakDays,
   });
 
+  const [nijDaily] = await db
+    .select()
+    .from(nijJaapDailyTable)
+    .where(and(eq(nijJaapDailyTable.userId, userId), eq(nijJaapDailyTable.date, date)))
+    .limit(1);
+  const [nijTotals] = await db
+    .select()
+    .from(nijJaapTotalsTable)
+    .where(eq(nijJaapTotalsTable.userId, userId))
+    .limit(1);
+
   res.json({
     snapshot,
     profile: profile
@@ -61,6 +72,8 @@ router.get("/dashboard/summary", requireAuth, async (req, res) => {
     })),
     dailyTarget: DAILY_TARGET,
     dailyTargetProgress: Math.min(1, daily.count / DAILY_TARGET),
+    nijJaapTodayCount: nijDaily?.count ?? 0,
+    nijJaapTotalCount: nijTotals?.totalCount ?? 0,
   });
 });
 

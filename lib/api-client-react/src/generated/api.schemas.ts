@@ -146,6 +146,25 @@ export interface PatronSankalpProgress {
   ratePerJaap: number;
 }
 
+export interface NijJaapSnapshot {
+  todayCount: number;
+  totalCount: number;
+  sankalpShown: boolean;
+  samarpanDone: boolean;
+  morningDone: boolean;
+  bonusUnlocked: boolean;
+  target: number;
+  isAdmin: boolean;
+}
+
+export interface NijJaapSnapshotEnvelope {
+  snapshot: NijJaapSnapshot;
+}
+
+export interface SuccessResponse {
+  success: boolean;
+}
+
 export type JaapSnapshotPendingSankalpAcceptance = {
   [key: string]: unknown;
 } | null;
@@ -164,6 +183,8 @@ export interface JaapSnapshot {
   activeMantraText?: string | null;
   allSankalpsDone: boolean;
   pendingSankalpAcceptance?: JaapSnapshotPendingSankalpAcceptance;
+  nijJaapRequired?: boolean | null;
+  nijJaapTodayCount?: number | null;
 }
 
 export interface JaapSnapshotEnvelope {
@@ -194,6 +215,8 @@ export interface DashboardSummary {
   milestones: Milestone[];
   dailyTarget: number;
   dailyTargetProgress: number;
+  nijJaapTodayCount?: number;
+  nijJaapTotalCount?: number;
 }
 
 export interface JaapHistoryDay {
