@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @workspace/naam-jaap run export:web",
+  "buildCommand": "cd artifacts/naam-jaap && node_modules/.bin/expo export --platform web",
   "outputDirectory": "artifacts/naam-jaap/dist",
   "framework": null
 }
