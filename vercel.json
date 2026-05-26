@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter @workspace/naam-jaap run export:web",
+  "outputDirectory": "artifacts/naam-jaap/dist",
+  "framework": null
+}
